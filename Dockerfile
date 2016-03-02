@@ -2,14 +2,25 @@ FROM alpine:latest
 
 MAINTAINER Trevor Hartman <trevorhartman@gmail.com>
 
-ENV CONSUL_TEMPLATE_VERSION 0.13.0
+ENV APP consul-template
+ENV VERSION 0.13.0
 
-ADD https://github.com/hashicorp/consul-template/releases/download/v${CONSUL_TEMPLATE_VERSION}/consul-template_${CONSUL_TEMPLATE_VERSION}_linux_amd64.tar.gz /
+ADD https://releases.hashicorp.com/${APP}/${VERSION}/${APP}_${VERSION}_linux_amd64.zip /tmp/
+ADD https://releases.hashicorp.com/${APP}/${VERSION}/${APP}_${VERSION}_SHA256SUMS      /tmp/
+ADD https://releases.hashicorp.com/${APP}/${VERSION}/${APP}_${VERSION}_SHA256SUMS.sig  /tmp/
 
-RUN tar zxvf consul-template_${CONSUL_TEMPLATE_VERSION}_linux_amd64.tar.gz && \
-    mv consul-template_${CONSUL_TEMPLATE_VERSION}_linux_amd64/consul-template /usr/local/bin/consul-template &&\
-    rm -rf /consul-template_${CONSUL_TEMPLATE_VERSION}_linux_amd64.tar.gz && \
-    rm -rf /consul-template_${CONSUL_TEMPLATE_VERSION}_linux_amd64 && \
-    mkdir -p /consul-template /consul-template/config.d /consul-template/templates
+WORKDIR /tmp/
+
+RUN apk --update add --virtual verify gpgme \
+ && gpg --keyserver pgp.mit.edu --recv-key 0x348FFC4C \
+ && gpg --verify /tmp/${APP}_${VERSION}_SHA256SUMS.sig \
+ && apk del verify \
+ && cat ${APP}_${VERSION}_SHA256SUMS | grep linux_amd64 | sha256sum -c \
+ && unzip ${APP}_${VERSION}_linux_amd64.zip \
+ && mv ${APP} /usr/local/bin/ \
+ && rm -rf /tmp/* \
+ && rm -rf /var/cache/apk/*
+
+WORKDIR /
 
 CMD ["/usr/local/bin/consul-template"]
