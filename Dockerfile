@@ -23,4 +23,8 @@ RUN apk --update add --virtual verify gpgme \
 
 WORKDIR /
 
+# Store templates in /templates
+# Render them to /config
+VOLUME ["/templates", "/config"]
+
 ENTRYPOINT ["/usr/local/bin/consul-template"]
