@@ -23,4 +23,4 @@ RUN apk --update add --virtual verify gpgme \
 
 WORKDIR /
 
-CMD ["/usr/local/bin/consul-template"]
+ENTRYPOINT ["/usr/local/bin/consul-template"]
